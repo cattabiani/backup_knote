@@ -1,0 +1,40 @@
+{
+  "name": "knote",
+  "version": "0.0.1",
+  "description": "A Quasar/Vue app to take organized notes if a folder-like structure.",
+  "productName": "knote",
+  "author": "Katta <alessandro.cattabiani@gmail.com>",
+  "private": true,
+  "scripts": {
+    "dev": "quasar dev",
+    "build": "quasar build",
+    "deploy": "quasar build -m pwa && gh-pages -d dist/pwa",
+    "lint": "eslint --ext .js,.vue ./",
+    "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.16.4",
+    "pinia": "^2.0.11",
+    "pinia-plugin-persistedstate": "^4.1.3",
+    "quasar": "^2.16.0",
+    "vue": "^3.4.18",
+    "vue-router": "^4.0.12"
+  },
+  "devDependencies": {
+    "@quasar/app-vite": "^1.9.0",
+    "@quasar/cli": "^2.4.1",
+    "autoprefixer": "^10.4.2",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-vue": "^9.32.0",
+    "gh-pages": "^6.3.0",
+    "prettier": "^2.8.8",
+    "vite-plugin-checker": "^0.8.0"
+  },
+  "engines": {
+    "node": "^18",
+    "npm": ">=6.13.4"
+  }
+}
+
+
