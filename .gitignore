@@ -1,4 +1,4 @@
-/node_modules
-/.quasar
-/.vscode
-/dist
+node_modules
+.quasar
+.vscode
+dist
