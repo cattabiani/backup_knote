@@ -1,46 +1,67 @@
 import Data from "./Data.js";
 const History = {
-  make() {
-    const index = 0;
-    const stack = [];
-    return { index, stack };
+  make(max) {
+    const idx = 0; // first not done
+    const head = 0;
+    const len = 0;
+    const stack = new Array(max).fill(null);
+    return { head, len, idx, stack, max };
   },
 
-  push(history, event) {
-    // discard any "redo" events
-    history.stack = history.stack.slice(0, history.index);
-    history.stack.push(event);
-    this.redo(history);
+  _at(h, idx) {
+    return (h.head + idx) % h.max;
   },
 
-  redo(history, data) {
-    if (history.index >= 0 && history.index < history.stack.length) {
-      try {
-        history.stack[history.index] = Data.applyEvent(
-          data,
-          history.stack[history.index]
-        );
-        history.index++;
-      } catch (e) {
-        history.stack.splice(history.index, 1);
-        throw e;
-      }
+  push(h, event, data) {
+    // drop tail
+    h.len = h.idx;
+
+    // add item at len
+    h.stack[this._at(h, h.len)] = event;
+
+    // update head and idx if overflow
+    if (h.len === h.max) {
+      h.head = this._at(h, 1);
+    } else {
+      // otherwise, increase len
+      ++h.len;
+    }
+
+    h.idx = h.len - 1;
+    this.redo(h, data);
+  },
+
+  redo(h, data) {
+    if (h.idx >= h.len) return;
+
+    const idx = this._at(h, h.idx);
+    try {
+      h.stack[idx] = Data.applyEvent(data, h.stack[idx]);
+      ++h.idx;
+    } catch (e) {
+      --h.len;
+      h.idx = h.len;
+      throw e;
     }
   },
 
-  undo(history, data) {
-    if (history.index > 0 && history.index <= history.stack.length) {
-      history.index--;
-
-      try {
-        history.stack[history.index] = Data.applyEvent(
-          data,
-          history.stack[history.index]
-        );
-      } catch (e) {
-        history.stack.splice(history.index, 1);
-        throw e;
+  undo(h, data) {
+    if (h.idx <= 0) return;
+    --h.idx;
+    const idx = this._at(h, h.idx);
+    try {
+      h.stack[idx] = Data.applyEvent(data, h.stack[idx]);
+    } catch (e) {
+      const stop = this._at(h, h.len);
+      if (idx < stop) {
+        h.stack.copyWithin(idx, idx + 1, h.len);
+      } else {
+        h.stack.copyWithin(idx, idx + 1, h.stack.length);
+        h.stack[h.stack.length - 1] = h.stack[0];
+        h.stack.copyWithin(0, 1, stop);
       }
+      --h.len;
+      throw e;
     }
   },
 };

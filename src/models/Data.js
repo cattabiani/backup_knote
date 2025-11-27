@@ -8,10 +8,23 @@ const Data = {
     return data;
   },
 
+  has(data, id) {
+    return id in data;
+  },
+
   getNode(data, id) {
     const node = data[id];
-    if (!node) throw new Error(`Node not found: ${id}`);
+    if (!node) return data["root"];
     return node;
+  },
+
+  getNodeByTitle(data, title) {
+    for (const [id, node] of Object.entries(data)) {
+      if (node.title === title) {
+        return node;
+      }
+    }
+    return null;
   },
 
   // post-order traversal for safe deletion. parent 0 with children 1 2 3 yields 3 2 1 0
@@ -105,9 +118,9 @@ const Data = {
     return Node.editTitle(node, newTitle);
   },
 
-  getCurrentPathDisplay(data, id) {
-    if (id === "root") return "/";
+  currentPath(data, id) {
     const node = this.getNode(data, id);
+    if (node.id === "root") return "/";
     const parts = [];
     let current = node;
     while (current && current.id !== "root") {
@@ -142,7 +155,7 @@ const Data = {
           data,
           event.nodeId,
           event.newParentId,
-          event.newIndex
+          event.newIndex,
         );
         return Events.makeMoveNode(event.nodeId, oldParent.id, oldIndex);
       }
@@ -168,7 +181,7 @@ const Data = {
         const child = this.getNode(data, childId);
         if (child.parentId !== node.id) {
           throw new Error(
-            `Integrity error: child ${childId} parentId mismatch`
+            `Integrity error: child ${childId} parentId mismatch`,
           );
         }
       }

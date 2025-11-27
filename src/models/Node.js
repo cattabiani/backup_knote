@@ -24,7 +24,7 @@ const Node = {
     const index = parent.children.findIndex((c) => c === child.id);
     if (index === -1) {
       throw new Error(
-        `Node ${child.id} not found in parent ${parent.id}'s children`
+        `Node ${child.id} not found in parent ${parent.id}'s children`,
       );
     }
     parent.children.splice(index, 1);

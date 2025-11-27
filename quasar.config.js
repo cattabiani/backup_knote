@@ -1,53 +1,63 @@
-/* eslint-env node */
+// quasar.config.js
+import { configure } from "quasar/wrappers";
+import checker from "vite-plugin-checker";
 
-const { configure } = require("quasar/wrappers");
+export default configure(() => ({
+  boot: [],
 
-module.exports = configure(() => {
-  return {
-    boot: [],
+  css: ["app.scss"],
 
-    css: ["app.scss"],
+  extras: ["roboto-font", "material-icons"],
 
-    extras: ["roboto-font", "material-icons"],
-
-    build: {
-      target: {
-        browser: ["es2019", "edge88", "firefox78", "chrome87", "safari13.1"],
-        node: "node18",
-      },
-      vueRouterMode: "hash",
-      publicPath: process.env.NODE_ENV === "production" ? "/knote/" : "/",
-      vitePlugins: [
-        [
-          "vite-plugin-checker",
-          { eslint: { lintCommand: 'eslint "./**/*.{js,vue}"' } },
-          { server: false },
-        ],
-      ],
+  build: {
+    target: {
+      browser: ["es2019", "edge88", "firefox78", "chrome87", "safari13.1"],
+      node: "node20",
     },
 
-    devServer: {
-      open: true,
+    vueRouterMode: "hash", // hash mode works best for GH Pages
+    publicPath: "/knote/",
+    vitePlugins: [],
+  },
+
+  devServer: {
+    open: true,
+  },
+
+  framework: {
+    config: {},
+    plugins: ["Notify"],
+  },
+
+  animations: [],
+
+  ssr: {
+    pwa: true,
+    prodPort: 3000,
+    middlewares: ["render"],
+  },
+
+  pwa: {
+    workboxMode: "GenerateSW",
+    injectPwaMetaTags: true,
+    swFilename: "sw.js",
+    manifestFilename: "manifest.json",
+    useCredentialsForManifestTag: false,
+
+    workboxOptions: {
+      skipWaiting: true,
+      clientsClaim: true,
     },
 
-    framework: {
-      config: {},
-      plugins: ["Notify"],
-    },
-
-    animations: [],
-
-    pwa: {
-      workboxMode: "generateSW",
-      injectPwaMetaTags: true,
-      manifest: {
-        name: "knote",
-        short_name: "knote",
+    extendManifestJson(json) {
+      Object.assign(json, {
+        name: "kNote",
+        short_name: "kNote",
         description: "A simple app to take organized notes.",
         display: "standalone",
         start_url: "./",
-        background_color: "#ffffff",
         theme_color: "#1976D2",
+        background_color: "#ffffff",
         icons: [
           {
             src: "icons/icon-192x192.png",
@@ -60,9 +70,31 @@ module.exports = configure(() => {
             type: "image/png",
           },
         ],
-      },
+        screenshots: [
+          {
+            src: "screenshots/screenshot-1.jpeg",
+            sizes: "985x2048",
+            type: "image/jpeg",
+          },
+          {
+            src: "screenshots/screenshot-2.jpeg",
+            sizes: "985x2048",
+            type: "image/jpeg",
+          },
+        ],
+      });
     },
+  },
 
-    capacitor: { hideSplashscreen: true },
-  };
-});
+  cordova: {},
+  capacitor: { hideSplashscreen: true },
+
+  electron: {
+    inspectPort: 5858,
+    bundler: "packager",
+    packager: {},
+    builder: { appId: "knote" },
+  },
+
+  bex: { contentScripts: ["my-content-script"] },
+}));

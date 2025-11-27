@@ -124,19 +124,17 @@ describe("Data module", () => {
     Data.checkIntegrity(data);
   });
 
-  it("getCurrentPathDisplay returns correct paths", () => {
+  it("currentPath returns correct paths", () => {
     const A = Data.addNewNode(data, "A", "root");
     const B = Data.addNewNode(data, "B", A.id);
     const C = Data.addNewNode(data, "C", B.id);
     const Untitled = Data.addNewNode(data, "", C.id);
 
-    expect(Data.getCurrentPathDisplay(data, "root")).toBe("/");
-    expect(Data.getCurrentPathDisplay(data, A.id)).toBe("/A");
-    expect(Data.getCurrentPathDisplay(data, B.id)).toBe("/A/B");
-    expect(Data.getCurrentPathDisplay(data, C.id)).toBe("/A/B/C");
-    expect(Data.getCurrentPathDisplay(data, Untitled.id)).toBe(
-      "/A/B/C/(untitled)"
-    );
+    expect(Data.currentPath(data, "root")).toBe("/");
+    expect(Data.currentPath(data, A.id)).toBe("/A");
+    expect(Data.currentPath(data, B.id)).toBe("/A/B");
+    expect(Data.currentPath(data, C.id)).toBe("/A/B/C");
+    expect(Data.currentPath(data, Untitled.id)).toBe("/A/B/C/(untitled)");
 
     Data.checkIntegrity(data);
   });

@@ -1,59 +1,54 @@
 import { defineStore } from "pinia";
-import Node from "src/models/node";
+import Data from "src/models/data";
+import History from "src/models/history";
+import Events from "src/models/events";
 
 export const useStore = defineStore("mainStore", {
   state: () => ({
-    currentPath: [],
-    data: { base: Node.make("base", "base") },
-    counter: 0,
+    data: Data.make(),
+    currentPathId: "root",
+    history: History.make(50),
   }),
 
   getters: {
-    currentPathString() {
-      if (!this.currentPath.length) return "/";
-      const parts = this.currentPath.map((id) => this.data[id]?.title ?? "?");
-      return "/" + parts.join("/");
+    currentNode() {
+      return Data.getNode(this.data, this.currentPathId);
     },
-    currentFolder() {
-      if (!this.currentPath.length) return this.data["base"];
-      const currentId = this.currentPath[this.currentPath.length - 1];
-      return this.data[currentId];
+    currentChildren() {
+      const node = this.currentNode;
+      if (!node) return [];
+      return node.children.map((id) => this.getNode(id)).filter(Boolean);
+    },
+    currentPath() {
+      return Data.currentPath(this.data, this.currentPathId);
     },
   },
 
   actions: {
-    addNode() {
-      let title = `New Node ${this.counter++}`;
-      const newNode = Node.make(title);
-      this.data[newNode.id] = newNode;
-      Node.addChild(this.currentFolder, newNode.id);
-      return newNode.id;
+    addNode(title = "") {
+      const event = Events.makeAddNewNode(title, this.currentPathId);
+      History.push(this.history, event, this.data);
     },
-    removeNode(nodeId, removeFromParent = true) {
-      if (nodeId === "base") return; // cannot remove base node
-      const node = this.data[nodeId];
-      if (!node) return;
-
-      // recursively remove children
-      for (const childId of node.children) {
-        this.removeNode(childId, false);
-      }
-
-      delete this.data[nodeId];
-
-      if (removeFromParent) {
-        Node.removeChild(this.currentFolder, nodeId);
-      }
+    editNodeTitle(newTitle, nodeId) {
+      const event = Events.makeEditTitle(newTitle, nodeId);
+      History.push(this.history, event, this.data);
+    },
+    getNode(id) {
+      return Data.getNode(this.data, id);
+    },
+    undo() {
+      History.undo(this.history, this.data);
+    },
+    redo() {
+      History.redo(this.history, this.data);
+    },
+    goTo(id) {
+      if (!Data.has(this.data, id)) return false;
+      this.currentPathId = id;
+      return true;
     },
     goBack() {
-      if (this.currentPath.length === 0) return false;
-      this.currentPath.pop();
-      return true;
-    },
-    goTo(nodeId) {
-      if (!this.data[nodeId]) return false;
-      this.currentPath.push(nodeId);
-      return true;
+      return this.goTo(this.currentNode.parentId);
     },
   },
 
