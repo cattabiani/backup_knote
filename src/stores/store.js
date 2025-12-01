@@ -38,6 +38,10 @@ export const useStore = defineStore("mainStore", {
       const event = Events.makeSwapChildren(node.id, idx0, idx1);
       History.push(this.history, event, this.data);
     },
+    moveNode(nodeId, parentId) {
+      const event = Events.makeMoveNode(nodeId, parentId, -1);
+      History.push(this.history, event, this.data);
+    },
     getNode(id) {
       return Data.getNode(this.data, id);
     },
