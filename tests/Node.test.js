@@ -49,12 +49,8 @@ describe("Node", () => {
     Node.addChild(parent, b);
     Node.addChild(parent, c);
 
-    const oldIndex = Node.moveChild(parent, b, 0);
-    expect(oldIndex).toBe(1);
+    Node.swapChildren(parent, 1, 0);
     expect(parent.children).toEqual([b.id, a.id, c.id]);
-
-    const failIndex = Node.moveChild(parent, Node.make(), 0);
-    expect(failIndex).toBe(-1);
   });
 
   it("flips deleted", () => {

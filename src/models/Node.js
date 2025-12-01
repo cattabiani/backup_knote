@@ -36,17 +36,20 @@ const Node = {
     return index;
   },
 
-  moveChild(parent, child, newIndex) {
-    const index = parent.children.findIndex((c) => c === child.id);
-    if (index === -1) return -1;
+  swapChildren(parent, idx0, idx1) {
+    if (
+      idx0 < 0 ||
+      idx1 < 0 ||
+      idx0 >= parent.children.length ||
+      idx1 >= parent.children.length
+    ) {
+      return;
+    }
 
-    parent.children.splice(index, 1);
-
-    if (newIndex < 0) newIndex = 0;
-    if (newIndex > parent.children.length) newIndex = parent.children.length;
-
-    parent.children.splice(newIndex, 0, child.id);
-    return index;
+    [parent.children[idx0], parent.children[idx1]] = [
+      parent.children[idx1],
+      parent.children[idx0],
+    ];
   },
 
   flipDeleted(node) {

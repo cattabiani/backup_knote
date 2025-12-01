@@ -42,36 +42,46 @@
       v-model="store.currentNode.title"
       class="q-mb-sm"
     ></q-input>
-    <q-list bordered separator class="rounded-borders">
-      <q-item
-        clickable
-        v-ripple
-        v-for="(child, i) in childrenList"
-        :key="child.id"
-        :class="i % 2 === 0 ? 'bg-white' : 'bg-grey-2'"
-        class="q-py-md"
-        @dblclick="store.goTo(child.id)"
-      >
-        <q-icon
-          v-if="child.isFolder"
-          name="folder_open"
-          class="q-mr-sm self-center"
-        />
-        <q-item-section>
-          <q-item-label class="text-subtitle1">
-            <q-input
-              dense
-              borderless
-              v-model="child.title"
-              placeholder="(untitled)"
-              @blur="commitTitle(child)"
-              @keyup.enter="commitTitle(child)"
-            />
-          </q-item-label>
-        </q-item-section>
-        <q-btn dense icon="drag_handle" class="drag-handle" />
-      </q-item>
-    </q-list>
+
+    <draggable
+      :list="childrenList"
+      item-key="id"
+      handle=".drag-handle"
+      animation="200"
+      @move="onMove"
+      @change="onChange"
+    >
+      <template #item="{ element: child, index: i }">
+        <q-item
+          clickable
+          v-ripple
+          :class="i % 2 === 0 ? 'bg-white' : 'bg-grey-2'"
+          class="q-py-md"
+          @dblclick="store.goTo(child.id)"
+        >
+          <q-icon
+            v-if="child.isFolder"
+            name="folder_open"
+            class="q-mr-sm self-center"
+          />
+
+          <q-item-section>
+            <q-item-label class="text-subtitle1">
+              <q-input
+                dense
+                borderless
+                v-model="child.title"
+                placeholder="(untitled)"
+                @blur="editNodeTitle(child)"
+                @keyup.enter="editNodeTitle(child)"
+              />
+            </q-item-label>
+          </q-item-section>
+
+          <q-btn dense icon="drag_handle" class="drag-handle" />
+        </q-item>
+      </template>
+    </draggable>
   </q-page>
 </template>
 
@@ -84,6 +94,7 @@ import { useRouter } from "vue-router";
 import { useStore } from "src/stores/store";
 import { useQuasar } from "quasar";
 import { ref, computed } from "vue";
+import draggable from "vuedraggable";
 
 const $q = useQuasar();
 const router = useRouter();
@@ -103,11 +114,13 @@ const childrenList = computed(() =>
   })),
 );
 
-const commitTitle = (child) => {
+const editNodeTitle = (child) => {
   store.editNodeTitle(child.title, child.id);
 };
 
-const onDragEnd = ({ oldIndex, newIndex }) => {
-  console.log("AAA", oldIndex, newIndex);
+const onChange = (evt) => {
+  if (evt.moved) {
+    store.swapChildren(evt.moved.oldIndex, evt.moved.newIndex);
+  }
 };
 </script>

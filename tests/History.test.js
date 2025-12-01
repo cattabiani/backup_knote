@@ -98,4 +98,29 @@ describe("History module - basic push test", () => {
     History.redo(history, data);
     expect(A.title).toBe("B");
   });
+
+  it("swap children", () => {
+    History.push(history, Events.makeAddNewNode("A", "root"), data);
+    History.push(history, Events.makeAddNewNode("B", "root"), data);
+    History.push(history, Events.makeAddNewNode("C", "root"), data);
+
+    const root = data["root"];
+    const A = data[root.children[0]];
+    expect(A.title).toBe("A");
+    const B = data[root.children[1]];
+    expect(B.title).toBe("B");
+    const C = data[root.children[2]];
+    expect(C.title).toBe("C");
+
+    History.push(history, Events.makeSwapChildren("root", 0, 1), data);
+
+    let titles = root.children.map((id) => data[id].title);
+    expect(titles).toEqual(["B", "A", "C"]);
+    History.undo(history, data);
+    titles = root.children.map((id) => data[id].title);
+    expect(titles).toEqual(["A", "B", "C"]);
+    History.redo(history, data);
+    titles = root.children.map((id) => data[id].title);
+    expect(titles).toEqual(["B", "A", "C"]);
+  });
 });

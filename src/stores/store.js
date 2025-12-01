@@ -33,6 +33,11 @@ export const useStore = defineStore("mainStore", {
       const event = Events.makeEditTitle(newTitle, nodeId);
       History.push(this.history, event, this.data);
     },
+    swapChildren(idx0, idx1) {
+      const node = this.currentNode;
+      const event = Events.makeSwapChildren(node.id, idx0, idx1);
+      History.push(this.history, event, this.data);
+    },
     getNode(id) {
       return Data.getNode(this.data, id);
     },
