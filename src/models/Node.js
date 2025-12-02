@@ -5,10 +5,10 @@ const Node = {
     if (!id) {
       id = uuidv4();
     }
-    let deleted = false;
+    let done = false;
     let children = [];
     let parentId = null;
-    return { id, parentId, title, deleted, children };
+    return { id, parentId, title, done, children };
   },
 
   addChild(parent, child, index = -1) {
@@ -52,9 +52,9 @@ const Node = {
     ];
   },
 
-  flipDeleted(node) {
-    const old = node.deleted;
-    node.deleted = !node.deleted;
+  flipDone(node) {
+    const old = node.done;
+    node.done = !node.done;
     return old;
   },
 

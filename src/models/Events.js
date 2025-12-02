@@ -11,8 +11,8 @@ const Events = {
     return { type: "editTitle", newTitle, nodeId };
   },
 
-  makeToggleDelete(nodeId) {
-    return { type: "toggleDeleted", nodeId };
+  makeFlipDone(nodeId) {
+    return { type: "flipDone", nodeId };
   },
 
   makeMoveNode(nodeId, newParentId, newIndex) {

@@ -45,6 +45,14 @@ export const useStore = defineStore("mainStore", {
     getNode(id) {
       return Data.getNode(this.data, id);
     },
+    removeNode(nodeId) {
+      const event = Events.makeRemoveNode(nodeId);
+      History.push(this.history, event, this.data);
+    },
+    toggleDone(nodeId) {
+      const event = Events.toggleDone(nodeId);
+      History.push(this.history, event, this.data);
+    },
     undo() {
       History.undo(this.history, this.data);
     },

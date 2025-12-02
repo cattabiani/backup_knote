@@ -8,7 +8,6 @@
         aria-label="Go Back"
         class="bg-white text-primary q-mr-md"
       />
-      {{ store.currentPath }}
       <q-space />
       <q-btn
         flat
@@ -34,11 +33,14 @@
       <q-btn
         flat
         icon="add"
-        @click="store.addNode()"
+        @click="addNode()"
         class="q-ml-md bg-white text-primary"
       >
       </q-btn>
     </q-toolbar>
+    <div class="q-pa-sm bg-primary text-white text-subtitle2">
+      {{ store.currentPath }}
+    </div>
   </q-header>
 
   <q-page class="column q-pa-md">
@@ -48,7 +50,18 @@
       label="Title"
       v-model="store.currentNode.title"
       class="q-mb-sm"
-    ></q-input>
+      ref="titleInput"
+    >
+      <template #append>
+        <q-btn
+          dense
+          color="green"
+          icon="check"
+          text-color="white"
+          @click="store.goBack()"
+        />
+      </template>
+    </q-input>
 
     <draggable
       :list="childrenList.slice()"
@@ -59,34 +72,47 @@
       @change="onChange"
     >
       <template #item="{ element: child, index: i }">
-        <q-item
-          clickable
-          v-ripple
-          :class="
-            child.isMoveUpItem
-              ? 'bg-grey-4'
-              : i % 2 === 0
-                ? 'bg-white'
-                : 'bg-grey-2'
-          "
-          class="q-py-md"
-          @dblclick="store.goTo(child.id)"
-          v-show="!(child.isMoveUpItem && store.currentNode.id === 'root')"
+        <q-slide-item
+          @left="() => store.removeNode(child.id)"
+          @right="() => store.toggleDone(child.id)"
+          left-color="red"
+          right-color="green"
         >
-          <q-icon
-            v-if="child.isMoveUpItem"
-            name="arrow_upward"
-            class="q-mr-sm self-center"
-          />
-          <q-icon
-            v-if="child.isFolder"
-            name="folder_open"
-            class="q-mr-sm self-center"
-          />
+          <template v-slot:left>
+            <q-icon name="delete" />
+          </template>
+          <template v-slot:right>
+            <q-icon name="done" />
+          </template>
+          <q-item
+            clickable
+            v-ripple
+            :class="
+              child.isMoveUpItem
+                ? 'bg-grey-4'
+                : i % 2 === 0
+                  ? 'bg-white'
+                  : 'bg-grey-2'
+            "
+            class="q-py-md"
+            @dblclick="store.goTo(child.id)"
+            v-show="!(child.isMoveUpItem && store.currentNode.id === 'root')"
+          >
+            <q-icon
+              v-if="child.isMoveUpItem"
+              name="arrow_upward"
+              class="q-mr-sm self-center"
+            />
+            <q-icon
+              v-if="child.isFolder"
+              name="folder_open"
+              class="q-mr-sm self-center"
+            />
 
-          <q-item-section>
-            <q-item-label class="text-subtitle1">
-              <q-input
+            <q-item-section>
+              <q-item-label class="text-subtitle1">
+                <q-item-label>{{ child.title || "(untitled)" }} </q-item-label>
+                <!-- <q-input
                 dense
                 borderless
                 v-model="child.title"
@@ -94,17 +120,18 @@
                 :disable="child.isMoveUpItem"
                 @blur="!child.isMoveUpItem && editNodeTitle(child)"
                 @keyup.enter="!child.isMoveUpItem && editNodeTitle(child)"
-              />
-            </q-item-label>
-          </q-item-section>
+              /> -->
+              </q-item-label>
+            </q-item-section>
 
-          <q-btn
-            v-if="!child.isMoveUpItem"
-            dense
-            icon="drag_handle"
-            class="drag-handle"
-          />
-        </q-item>
+            <q-btn
+              v-if="!child.isMoveUpItem"
+              dense
+              icon="drag_handle"
+              class="drag-handle"
+            />
+          </q-item>
+        </q-slide-item>
       </template>
     </draggable>
   </q-page>
@@ -118,7 +145,7 @@ defineOptions({
 import { useRouter } from "vue-router";
 import { useStore } from "src/stores/store";
 import { useQuasar } from "quasar";
-import { ref, computed } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import draggable from "vuedraggable";
 
 const $q = useQuasar();
@@ -126,6 +153,22 @@ const router = useRouter();
 const store = useStore();
 
 const nestMode = ref(false);
+const titleInput = ref(null);
+
+const addNode = () => {
+  store.addNode();
+  store.goTo(store.currentChildren[store.currentChildren.length - 1].id);
+};
+
+watch(
+  () => store.currentNode.id,
+  async (newId) => {
+    if (newId !== "root") {
+      await nextTick(); // wait until the input is rendered
+      titleInput.value?.focus(); // focus it
+    }
+  },
+);
 
 const goBack = () => {
   if (!store.goBack()) {
@@ -137,6 +180,7 @@ const childrenList = computed(() => {
   const baseList = store.currentChildren.map((c) => ({
     title: c.title,
     id: c.id,
+    done: c.done,
     isFolder: c.children.length > 0,
   }));
 
@@ -146,6 +190,7 @@ const childrenList = computed(() => {
       {
         id: store.currentNode.parentId,
         title: "Move to parent",
+        done: false,
         isMoveUpItem: true,
       },
       ...baseList,

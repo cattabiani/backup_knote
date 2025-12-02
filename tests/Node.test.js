@@ -6,7 +6,7 @@ describe("Node", () => {
     const n = Node.make();
     expect(n.id).toBeTypeOf("string");
     expect(n.title).toBe("");
-    expect(n.deleted).toBe(false);
+    expect(n.done).toBe(false);
     expect(n.children).toEqual([]);
     expect(n.parentId).toBe(null);
   });
@@ -55,9 +55,9 @@ describe("Node", () => {
 
   it("flips deleted", () => {
     const n = Node.make();
-    const old = Node.flipDeleted(n);
+    const old = Node.flipDone(n);
     expect(old).toBe(false);
-    expect(n.deleted).toBe(true);
+    expect(n.done).toBe(true);
   });
 
   it("edits title", () => {

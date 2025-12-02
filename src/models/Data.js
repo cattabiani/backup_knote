@@ -107,12 +107,12 @@ const Data = {
     Node.swapChildren(node, idx0, idx1);
   },
 
-  toggleDeleted(data, nodeId) {
+  flipDone(data, nodeId) {
     if (nodeId === "root") {
-      throw new Error("Cannot toggle deleted state of root node");
+      throw new Error("Cannot flip done state of root node");
     }
     const node = this.getNode(data, nodeId);
-    Node.flipDeleted(node);
+    Node.flipDone(node);
   },
 
   editTitle(data, nodeId, newTitle) {
@@ -168,8 +168,8 @@ const Data = {
         this.swapChildren(data, event.nodeId, event.idx0, event.idx1);
         return Events.makeSwapChildren(event.nodeId, event.idx1, event.idx0);
       }
-      case "toggleDeleted": {
-        this.toggleDeleted(data, event.nodeId);
+      case "flipDone": {
+        this.flipDone(data, event.nodeId);
         return event;
       }
       default:
