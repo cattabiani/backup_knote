@@ -75,9 +75,10 @@ export const useStore = defineStore("mainStore", {
   persist: {
     key: "sessionDataKnote",
     pick: [
-      // 'currentPath',
-      // 'data',
-      // 'counter',
+      "data",
+      "currentPathId",
+      "history",
+      "showDone",
     ],
   },
 });
