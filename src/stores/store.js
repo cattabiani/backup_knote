@@ -48,9 +48,11 @@ export const useStore = defineStore("mainStore", {
     removeNode(nodeId) {
       const event = Events.makeRemoveNode(nodeId);
       History.push(this.history, event, this.data);
+
+      return !Data.has(this.data, nodeId);
     },
-    toggleDone(nodeId) {
-      const event = Events.toggleDone(nodeId);
+    flipDone(nodeId) {
+      const event = Events.makeFlipDone(nodeId);
       History.push(this.history, event, this.data);
     },
     undo() {

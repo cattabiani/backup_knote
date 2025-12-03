@@ -48,9 +48,10 @@
       v-if="store.currentNode.id !== `root`"
       outlined
       label="Title"
-      v-model="store.currentNode.title"
+      v-model="title"
       class="q-mb-sm"
       ref="titleInput"
+      @blur="editTitle"
     >
       <template #append>
         <q-btn
@@ -58,7 +59,7 @@
           color="green"
           icon="check"
           text-color="white"
-          @click="store.goBack()"
+          @click="titleOk"
         />
       </template>
     </q-input>
@@ -73,8 +74,8 @@
     >
       <template #item="{ element: child, index: i }">
         <q-slide-item
-          @left="() => store.removeNode(child.id)"
-          @right="() => store.toggleDone(child.id)"
+          @left="(reset) => onLeft(child.id, reset)"
+          @right="(reset) => onRight(child.id, reset)"
           left-color="red"
           right-color="green"
         >
@@ -154,6 +155,34 @@ const store = useStore();
 
 const nestMode = ref(false);
 const titleInput = ref(null);
+const title = ref(String(store.currentNode.title));
+
+const onRight = (id, { reset }) => {
+  store.flipDone(id);
+  reset();
+};
+
+const onLeft = (id, { reset }) => {
+  if (!store.removeNode(id)) {
+    reset();
+  }
+};
+
+watch(
+  () => store.currentNode.title,
+  (newTitle) => {
+    title.value = newTitle;
+  },
+);
+
+const titleOk = () => {
+  editTitle();
+  store.goBack();
+};
+
+const editTitle = () => {
+  store.editNodeTitle(title.value, store.currentNode.id);
+};
 
 const addNode = () => {
   store.addNode();
@@ -199,10 +228,6 @@ const childrenList = computed(() => {
 
   return baseList;
 });
-
-const editNodeTitle = (child) => {
-  store.editNodeTitle(child.title, child.id);
-};
 
 const onChange = (evt) => {
   if (evt.moved) {
