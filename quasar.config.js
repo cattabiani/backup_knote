@@ -16,7 +16,7 @@ export default configure(() => ({
     },
 
     vueRouterMode: "hash", // hash mode works best for GH Pages
-    publicPath: "/knote/",
+    publicPath: '/knote/',
     vitePlugins: [],
   },
 
