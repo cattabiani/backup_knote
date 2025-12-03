@@ -8,6 +8,7 @@ export const useStore = defineStore("mainStore", {
     data: Data.make(),
     currentPathId: "root",
     history: History.make(50),
+    showDone: false,
   }),
 
   getters: {

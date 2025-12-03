@@ -23,13 +23,7 @@
         class="q-ml-md bg-white text-primary"
       >
       </q-btn>
-      <q-btn
-        flat
-        :icon="nestMode ? 'folder_open' : 'folder'"
-        @click="nestMode = !nestMode"
-        class="q-ml-md bg-white text-primary"
-      >
-      </q-btn>
+
       <q-btn
         flat
         icon="add"
@@ -38,9 +32,37 @@
       >
       </q-btn>
     </q-toolbar>
-    <div class="q-pa-sm bg-primary text-white text-subtitle2">
+    <q-toolbar>
       {{ store.currentPath }}
-    </div>
+      <q-space />
+      <q-btn
+        v-if="store.currentChildren.length > 0"
+        flat
+        :icon="store.showDone ? 'visibility' : 'visibility_off'"
+        @click="store.showDone = !store.showDone"
+        class="q-ml-md bg-white text-primary"
+      >
+      </q-btn>
+      <q-btn
+        flat
+        :icon="nestMode ? 'folder_open' : 'folder'"
+        @click="nestMode = !nestMode"
+        class="q-ml-md bg-white text-primary"
+      >
+      </q-btn>
+
+      <q-btn
+        flat
+        class="q-ml-md bg-white text-primary"
+        icon="add"
+        color="transparent"
+        @click="activateModalMode"
+      >
+        <q-icon name="add" class="plus-small" color="primary" />
+        <q-icon name="add" class="plus-big" color="primary" />
+        <q-icon name="add" class="plus-medium" color="primary" />
+      </q-btn>
+    </q-toolbar>
   </q-header>
 
   <q-page class="column q-pa-md">
@@ -78,6 +100,7 @@
           @right="(reset) => onRight(child.id, reset)"
           left-color="red"
           right-color="green"
+          v-show="store.showDone || !child.done"
         >
           <template v-slot:left>
             <q-icon name="delete" />
@@ -91,9 +114,13 @@
             :class="
               child.isMoveUpItem
                 ? 'bg-grey-4'
-                : i % 2 === 0
-                  ? 'bg-white'
-                  : 'bg-grey-2'
+                : store.showDone
+                  ? i % 2 === 0
+                    ? 'bg-white'
+                    : 'bg-grey-2'
+                  : child.visibleIndex % 2 === 0
+                    ? 'bg-white'
+                    : 'bg-grey-2'
             "
             class="q-py-md"
             @dblclick="store.goTo(child.id)"
@@ -102,6 +129,13 @@
             <q-icon
               v-if="child.isMoveUpItem"
               name="arrow_upward"
+              class="q-mr-sm self-center"
+            />
+
+            <q-icon
+              v-if="!child.isMoveUpItem && store.showDone"
+              :name="child.done ? 'check_circle' : 'radio_button_unchecked'"
+              :color="child.done ? 'green' : 'grey-5'"
               class="q-mr-sm self-center"
             />
             <q-icon
@@ -135,6 +169,39 @@
         </q-slide-item>
       </template>
     </draggable>
+
+    <q-dialog v-model="modalMode">
+      <q-card
+        class="q-pa-none"
+        style="width: 80%; height: 80%; display: flex; flex-direction: column"
+      >
+        <div
+          style="flex: 1; display: flex; flex-direction: column; padding: 1em"
+        >
+          <textarea
+            ref="modalTextarea"
+            v-model="modalText"
+            class="fill-textarea"
+            placeholder="Your notes. Each row is a note."
+          ></textarea>
+        </div>
+
+        <q-card-actions align="center" class="q-pa-sm">
+          <q-btn
+            class="q-ml-md bg-red text-white"
+            flat
+            icon="close"
+            @click="modalMode = false"
+          />
+          <q-btn
+            flat
+            class="q-ml-md bg-green text-white"
+            icon="check"
+            @click="okModalMode"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -156,6 +223,28 @@ const store = useStore();
 const nestMode = ref(false);
 const titleInput = ref(null);
 const title = ref(String(store.currentNode.title));
+const modalMode = ref(false);
+const modalText = ref("");
+const modalTextarea = ref(null);
+
+const okModalMode = () => {
+  modalText.value
+    .split("\n") // split by newline
+    .map((s) => s.trim()) // trim whitespace
+    .filter((s) => s.length) // remove empty strings
+    .forEach((title) => store.addNode(title)); // call addNode for each
+
+  modalMode.value = false;
+  modalText.value = "";
+};
+
+const activateModalMode = () => {
+  modalMode.value = true;
+
+  nextTick(() => {
+    modalTextarea.value?.focus();
+  });
+};
 
 const onRight = (id, { reset }) => {
   store.flipDone(id);
@@ -206,12 +295,24 @@ const goBack = () => {
 };
 
 const childrenList = computed(() => {
-  const baseList = store.currentChildren.map((c) => ({
-    title: c.title,
-    id: c.id,
-    done: c.done,
-    isFolder: c.children.length > 0,
-  }));
+  let visibleIndex = 0;
+  const baseList = store.currentChildren.map((c) => {
+    const item = {
+      title: c.title,
+      id: c.id,
+      done: c.done,
+      isFolder: c.children.length > 0,
+    };
+
+    if (!c.done) {
+      item.visibleIndex = visibleIndex;
+      visibleIndex++;
+    } else {
+      item.visibleIndex = -1; // optional: mark done items
+    }
+
+    return item;
+  });
 
   if (nestMode.value) {
     // Add the "Move to parent" item at the start
@@ -245,5 +346,44 @@ const onChange = (evt) => {
 <style scoped>
 .hidden-ghost {
   display: none;
+}
+
+.q-btn {
+  position: relative; /* needed for absolute icons */
+}
+
+/* Small plus, top left */
+.plus-small {
+  position: absolute;
+  top: 0%;
+  left: 5%;
+  font-size: 1.2em;
+  color: currentColor; /* inherits primary */
+}
+
+/* Big plus, center right */
+.plus-big {
+  position: absolute;
+  top: -5%;
+  left: 40%;
+  font-size: 2.5em;
+  color: currentColor; /* inherits primary */
+}
+
+/* Medium plus, bottom left but less left than top one */
+.plus-medium {
+  position: absolute;
+  bottom: 0%;
+  left: 18%;
+  font-size: 1.6em;
+  color: currentColor; /* inherits primary */
+}
+
+.fill-textarea {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  resize: none;
+  box-sizing: border-box;
 }
 </style>
